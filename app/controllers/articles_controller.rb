@@ -5,11 +5,19 @@ class ArticlesController < ApplicationController
     articles = Article.all.includes(:user).order(created_at: :desc)
     render json: articles, each_serializer: ArticleListSerializer
   end
-
   def show
-    article = Article.find(params[:id])
-    render json: article
+    @article = Article.find(params[:id])
+    
+    session[:page_views] ||= 0
+    session[:page_views] += 1
+    
+    if session[:page_views] >= 3
+      render json: { error: "maximum number of free articles reached." }, status: :unauthorized
+    else
+      render json: @article, only: [:id, :title, :minutes_to_read, :author, :content]
+    end
   end
+  
 
   private
 
