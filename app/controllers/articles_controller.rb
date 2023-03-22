@@ -5,24 +5,21 @@ class ArticlesController < ApplicationController
     articles = Article.all.includes(:user).order(created_at: :desc)
     render json: articles, each_serializer: ArticleListSerializer
   end
+
   def show
-    @article = Article.find(params[:id])
-    
+    article = Article.find(params[:id])
     session[:page_views] ||= 0
     session[:page_views] += 1
-    
-    if session[:page_views] >= 3
-      render json: { error: "maximum number of free articles reached." }, status: :unauthorized
+    if session[:page_views] > 3
+      render json: { error: "Maximum pageview limit reached" }, status: :unauthorized
     else
-      render json: @article, only: [:id, :title, :minutes_to_read, :author, :content]
+      render json: article
     end
   end
-  
 
   private
 
   def record_not_found
     render json: { error: "Article not found" }, status: :not_found
   end
-
 end
